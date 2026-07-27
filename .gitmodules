@@ -1,0 +1,3 @@
+[submodule "ppq-private-mode-proxy"]
+	path = ppq-private-mode-proxy
+	url = https://github.com/PayPerQ/ppq-private-mode-proxy.git
