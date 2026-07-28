@@ -11,15 +11,13 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const debug = await configJson.read((c) => c.debug).const(effects)
 
   return sdk.Daemons.of(effects).addDaemon('proxy', {
+    // The proxy is stateless and fully configured via env — the 'main' volume
+    // (config.json, read host-side by the SDK) is never mounted into the
+    // container.
     subcontainer: sdk.SubContainer.of(
       effects,
       { imageId: 'proxy' },
-      sdk.Mounts.of().mountVolume({
-        volumeId: 'main',
-        subpath: null,
-        mountpoint: '/data',
-        readonly: false,
-      }),
+      sdk.Mounts.of(),
       'proxy-sub',
     ),
     exec: {

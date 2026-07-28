@@ -44,3 +44,6 @@ PPQ.AI key per request, pass it as an `Authorization: Bearer` header.
 
 If you need to change the key or turn on verbose logging later, run
 **Configure PPQ API Key** again from the service's Actions.
+
+Backups of this service include your saved API key, and restoring a backup
+restores it — keep that in mind when handling backup drives.

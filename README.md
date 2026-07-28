@@ -46,9 +46,11 @@ Architectures: `x86_64`, `aarch64`.
 
 ## Volume and Data Layout
 
-One volume, `main`, mounted at `/data`. The proxy itself is stateless; the
-volume holds only `config.json` (the StartOS-managed settings file containing
-the API key and logging preference), written by the SDK on the host side.
+One volume, `main`, holding only `config.json` (the StartOS-managed settings
+file containing the API key and logging preference), read and written by the
+SDK on the host side. The proxy itself is stateless and the volume is **not**
+mounted into the container — configuration reaches the daemon via environment
+variables only.
 
 ## Installation and First-Run Flow
 
@@ -86,7 +88,9 @@ the user from the interface panel.
 ## Backups and Restore
 
 The `main` volume (i.e. `config.json`) is backed up. Restore brings back the
-saved API key and settings; no other state exists.
+saved API key and settings; no other state exists. Note that backups therefore
+contain the saved PPQ.AI API key (StartOS backups are encrypted with the
+user's backup password).
 
 ## Health Checks
 
