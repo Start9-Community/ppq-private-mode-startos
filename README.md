@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.svg" alt="PPQ Private Mode Logo" width="21%" />
+  <img src="icon.png" alt="PPQ Private Mode Logo" width="21%" />
 </p>
 
 # PPQ Private Mode on StartOS
