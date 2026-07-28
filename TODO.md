@@ -1,12 +1,9 @@
 # TODO — remaining work before release
 
-- [ ] Install on a StartOS box and verify: critical task prompts for the API
-      key, service starts, health check turns ready after attestation, and a
-      `POST /v1/chat/completions` request against the exported interface
-      address succeeds.
-- [ ] Backup / restore sanity check (config.json survives, service starts
-      without re-prompting for the key).
-- [ ] Review README and instructions once more against actual behavior on the
-      box.
+- [x] Verified on StartOS 0.4.0 (aarch64, QEMU/HVF VM): sideload install,
+      critical first-run task, Configure PPQ API Key action, attestation-gated
+      health check, OpenAI chat completion through the exported TLS interface,
+      logs, stop/start persistence, uninstall, and backup/restore to a disk
+      target (service restores with its key, no re-prompt).
 - [ ] Submit to the Community Registry (email submissions@start9.com with a
       link to this repo).
