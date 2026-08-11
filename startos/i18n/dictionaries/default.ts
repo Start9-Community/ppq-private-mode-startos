@@ -13,14 +13,14 @@ const dict = {
   'Point any OpenAI or Anthropic SDK client at this URL to use PPQ private (TEE) models with end-to-end encryption': 7,
   // actions/configureApiKey.ts
   'PPQ.AI API Key': 8,
-  'Your API key from ppq.ai (Settings → API Keys). Leave blank to keep the key already saved.': 9,
-  'Verbose Logging': 10,
-  'Log every request the proxy handles. Useful for troubleshooting.': 11,
-  'Configure PPQ API Key': 12,
-  'Set the PPQ.AI API key the proxy uses to authenticate. Requests are billed to this key.': 13,
-  'An API key is required. Create one at ppq.ai under Settings → API Keys.': 14,
+  'Your API key from ppq.ai (Settings → API Keys). Leave blank to keep the key already saved, or to set one later from the Status Page.': 9,
+  'A PPQ.AI key starts with "sk-".': 10,
+  'Verbose Logging': 11,
+  'Log every request the proxy handles. Useful for troubleshooting.': 12,
+  'Configure PPQ API Key': 13,
+  'Set the PPQ.AI API key the proxy uses to authenticate. Requests are billed to this key.': 14,
   // init/taskConfigureApiKey.ts
-  'Add your PPQ.AI API key to start the proxy': 15,
+  'Add your PPQ.AI API key here, or start the service and save one on the Status Page': 15,
 } as const
 
 /**

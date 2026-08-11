@@ -1,5 +1,6 @@
 import { sdk } from '../sdk'
 import { configJson } from '../fileModels/config.json'
+import { storeJson } from '../fileModels/store.json'
 import { i18n } from '../i18n'
 
 const { InputSpec, Value } = sdk
@@ -8,12 +9,21 @@ const inputSpec = InputSpec.of({
   apiKey: Value.text({
     name: i18n('PPQ.AI API Key'),
     description: i18n(
-      'Your API key from ppq.ai (Settings → API Keys). Leave blank to keep the key already saved.',
+      'Your API key from ppq.ai (Settings → API Keys). Leave blank to keep the key already saved, or to set one later from the Status Page.',
     ),
     required: false,
     default: null,
     masked: true,
     placeholder: 'sk-...',
+    // Upstream's own shape check, applied here too — the Status Page rejects a
+    // malformed key outright, but a key written straight to config.json would
+    // only surface as a 401 on the first request.
+    patterns: [
+      {
+        regex: '^sk-[A-Za-z0-9]{16,64}$',
+        description: i18n('A PPQ.AI key starts with "sk-".'),
+      },
+    ],
   }),
   debug: Value.toggle({
     name: i18n('Verbose Logging'),
@@ -42,21 +52,13 @@ export const configureApiKey = sdk.Action.withInput(
 
   // Prefill: the API key is never echoed back into the form.
   async ({ effects }) => ({
-    debug: (await configJson.read((c) => c.debug).once()) ?? false,
+    debug: (await storeJson.read((s) => s.debug).once()) ?? false,
   }),
 
   async ({ effects, input }) => {
-    const apiKey =
-      (input.apiKey ?? '').trim() ||
-      (await configJson.read((c) => c.apiKey).once())
-    if (!apiKey) {
-      throw new Error(
-        i18n(
-          'An API key is required. Create one at ppq.ai under Settings → API Keys.',
-        ),
-      )
-    }
+    await storeJson.merge(effects, { debug: input.debug })
 
-    await configJson.merge(effects, { apiKey, debug: input.debug })
+    const apiKey = (input.apiKey ?? '').trim()
+    if (apiKey) await configJson.merge(effects, { apiKey })
   },
 )
