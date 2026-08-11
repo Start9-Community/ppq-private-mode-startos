@@ -1,9 +1,8 @@
 # TODO — remaining work before release
 
-- [x] Verified on StartOS 0.4.0 (aarch64, QEMU/HVF VM): sideload install,
-      critical first-run task, Configure PPQ API Key action, attestation-gated
-      health check, OpenAI chat completion through the exported TLS interface,
-      logs, stop/start persistence, uninstall, and backup/restore to a disk
-      target (service restores with its key, no re-prompt).
-- [ ] Submit to the Community Registry (email submissions@start9.com with a
-      link to this repo).
+- [ ] Run one live inference request with a funded PPQ.AI key. Everything up to
+      the enclave is verified (attestation, encrypted forward, error handling),
+      but no request has yet been billed end-to-end against a real key.
+- [ ] Re-run backup and restore on a StartOS box: back up, uninstall, restore,
+      and confirm the service comes back with its key and raises no
+      configuration task.

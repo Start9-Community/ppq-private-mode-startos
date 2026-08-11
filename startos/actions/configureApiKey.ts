@@ -41,24 +41,19 @@ export const configureApiKey = sdk.Action.withInput(
   inputSpec,
 
   // Prefill: the API key is never echoed back into the form.
-  async ({ effects }) => {
-    const debug = await configJson
-      .read((c) => c.debug)
-      .once()
-      .catch(() => false)
-    return { debug: debug ?? false }
-  },
+  async ({ effects }) => ({
+    debug: (await configJson.read((c) => c.debug).once()) ?? false,
+  }),
 
   async ({ effects, input }) => {
-    const existingKey = await configJson
-      .read((c) => c.apiKey)
-      .once()
-      .catch(() => undefined)
-
-    const apiKey = (input.apiKey ?? '').trim() || existingKey
+    const apiKey =
+      (input.apiKey ?? '').trim() ||
+      (await configJson.read((c) => c.apiKey).once())
     if (!apiKey) {
       throw new Error(
-        i18n('An API key is required. Create one at ppq.ai under Settings → API Keys.'),
+        i18n(
+          'An API key is required. Create one at ppq.ai under Settings → API Keys.',
+        ),
       )
     }
 

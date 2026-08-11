@@ -5,7 +5,7 @@ export const manifest = setupManifest({
   id: 'ppq-private-mode',
   title: 'PPQ Private Mode',
   license: 'MIT',
-  packageRepo: 'https://github.com/PayPerQ/ppq-private-mode-startos',
+  packageRepo: 'https://github.com/Start9-Community/ppq-private-mode-startos',
   upstreamRepo: 'https://github.com/PayPerQ/ppq-private-mode-proxy',
   marketingUrl: 'https://ppq.ai',
   donationUrl: null,

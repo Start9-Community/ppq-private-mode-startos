@@ -17,7 +17,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     subcontainer: sdk.SubContainer.of(
       effects,
       { imageId: 'proxy' },
-      sdk.Mounts.of(),
+      null,
       'proxy-sub',
     ),
     exec: {
@@ -36,8 +36,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
       display: i18n('Encrypted Proxy'),
       fn: () =>
         sdk.healthCheck.checkPortListening(effects, apiPort, {
-          successMessage: i18n('The proxy is ready — enclave attestation verified'),
-          errorMessage: i18n('The proxy is not ready (enclave attestation pending)'),
+          successMessage: i18n(
+            'The proxy is ready — enclave attestation verified',
+          ),
+          errorMessage: i18n(
+            'The proxy is not ready (enclave attestation pending)',
+          ),
         }),
     },
     requires: [],
