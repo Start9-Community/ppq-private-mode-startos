@@ -2,30 +2,39 @@ import { sdk } from './sdk'
 import { apiPort } from './utils'
 import { i18n } from './i18n'
 
-// Host id (the sdk.MultiHost.of group) — distinct from the interface id exported on it.
-export const apiHostId = 'api-multi'
-export const apiInterfaceId = 'api'
-
 export const setInterfaces = sdk.setupInterfaces(async ({ effects }) => {
-  const apiMulti = sdk.MultiHost.of(effects, apiHostId)
-  const apiMultiOrigin = await apiMulti.bindPort(apiPort, {
+  const multi = sdk.MultiHost.of(effects, 'main')
+  const origin = await multi.bindPort(apiPort, {
     protocol: 'http',
+  })
+  const ui = sdk.createInterface(effects, {
+    name: i18n('Status Page'),
+    id: 'ui',
+    description: i18n(
+      'Enclave attestation state, the available private models, and client setup snippets',
+    ),
+    type: 'ui',
+    masked: false,
+    schemeOverride: null,
+    username: null,
+    path: '',
+    query: {},
   })
   const api = sdk.createInterface(effects, {
     name: i18n('OpenAI-Compatible API'),
-    id: apiInterfaceId,
+    id: 'api',
     description: i18n(
       'Point any OpenAI or Anthropic SDK client at this URL to use PPQ private (TEE) models with end-to-end encryption',
     ),
     type: 'api',
-    masked: true,
+    masked: false,
     schemeOverride: null,
     username: null,
     path: '',
     query: {},
   })
 
-  const apiReceipt = await apiMultiOrigin.export([api])
+  const receipt = await origin.export([ui, api])
 
-  return [apiReceipt]
+  return [receipt]
 })

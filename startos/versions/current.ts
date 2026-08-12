@@ -2,7 +2,7 @@ import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
   // Tracks upstream ppq-private-mode-proxy (package.json version).
-  version: '0.3.2:0',
+  version: '0.4.1:0',
   releaseNotes: {
     en_US: 'Initial release for StartOS',
     es_ES: 'Lanzamiento inicial para StartOS',

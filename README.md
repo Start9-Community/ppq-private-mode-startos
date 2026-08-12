@@ -46,44 +46,84 @@ Architectures: `x86_64`, `aarch64`.
 
 ## Volume and Data Layout
 
-One volume, `main`, holding only `config.json` (the StartOS-managed settings
-file containing the API key and logging preference), read and written by the
-SDK on the host side. The proxy itself is stateless and the volume is **not**
-mounted into the container — configuration reaches the daemon via environment
-variables only.
+One volume, `main`, split so the container sees only what it owns:
+
+| Host path           | Container path      | Written by                                       |
+| ------------------- | ------------------- | ------------------------------------------------ |
+| `proxy/config.json` | `/data/config.json` | the proxy (Status Page) **and** the SDK (action) |
+| `store.json`        | not mounted         | the SDK only                                     |
+
+`proxy/` is mounted at `/data` as the proxy's `PPQ_DATA_DIR`, and `config.json`
+inside it is upstream's own file — the proxy rewrites it wholesale when a key is
+saved from the Status Page, so nothing of ours may live there. The Verbose
+Logging setting therefore lives in `store.json`, outside the mount.
+
+A `chown` oneshot hands `/data` to the image's unprivileged `node` user before
+the daemon starts, so the Status Page can write to it.
 
 ## Installation and First-Run Flow
 
-On install, a critical task prompts for a PPQ.AI API key. The service cannot
-start until the key is provided (upstream exits immediately without
-`PPQ_API_KEY`). There is no other setup.
+On install, an **important** (non-blocking) task prompts for a PPQ.AI API key.
+There are two ways to satisfy it, and neither is required before starting:
+
+1. Run the **Configure PPQ API Key** action.
+2. Start the service and save the key on the **Status Page**.
+
+The proxy runs without a key — it completes attestation, serves the Status Page,
+and answers `401` to inference requests until one is set. The task is
+deliberately not critical: a critical task suspends every other control, which
+would leave the user unable to start the service and reach the Status Page's own
+key form.
 
 ## Configuration Management
 
-All upstream configuration is via environment variables; StartOS manages them
-from `config.json`:
+The API key is the proxy's to own. StartOS does **not** pass `PPQ_API_KEY`;
+instead it points `PPQ_DATA_DIR` at the mounted volume so upstream's key store
+is the single source of truth, written by either the action or the Status Page
+and read from the same file by both.
 
-- `PPQ_API_KEY` — set from the **Configure PPQ API Key** action
-- `DEBUG` — set from the same action's Verbose Logging toggle
+- `PPQ_DATA_DIR` — `/data`, enabling persistence and the Status Page's key form
+- `DEBUG` — set from the action's Verbose Logging toggle, via `store.json`
 - `HOST` — fixed to `0.0.0.0` (container binding)
-- `PORT` — fixed to `8787`
+- `PORT` — fixed to 8787
 - `PPQ_API_BASE` — not set (upstream default `https://api.ppq.ai`)
 
-Changing settings restarts the daemon (values are read reactively).
+The proxy loads `config.json` once at startup, so `main.ts` watches the file:
+writing a key restarts the daemon, which reloads it. A key saved on the Status
+Page takes effect immediately in the running proxy and then triggers that same
+restart — brief, and it converges on the value just saved either way.
 
 ## Network Access and Interfaces
 
-One interface, `api` (port 8787, HTTP): the upstream OpenAI-compatible API,
-shown as a copyable connection string. Endpoints: `GET /health`,
-`GET /v1/models`, `POST /v1/chat/completions` (OpenAI format),
-`POST /v1/messages` (Anthropic format). Availability on LAN/Tor is decided by
-the user from the interface panel.
+Two interfaces on one HTTP host, port 8787, both served by the proxy:
+
+- **Status Page** (`ui`) — upstream's server-rendered page at `/`: attestation
+  state (enclave host and code fingerprint), API-key status, the private model
+  list, and client setup snippets.
+- **OpenAI-Compatible API** (`api`) — the same origin, shown as a copyable
+  connection string for AI clients. Endpoints: `GET /health`,
+  `GET /v1/models`, `POST /v1/chat/completions` (OpenAI format),
+  `POST /v1/messages` (Anthropic format).
+
+Availability on LAN/Tor is decided by the user from the interface panel.
+
+**No endpoint is authenticated.** Upstream ships no auth on any route, so
+whoever can reach the port can spend the user's PPQ.AI balance via
+`/v1/chat/completions`, and — because this package sets `PPQ_DATA_DIR` — can
+also replace the stored key via `POST /setup/api-key`
+([upstream #23](https://github.com/PayPerQ/ppq-private-mode-proxy/issues/23)).
+The billing exposure predates that endpoint and is inherent to the proxy; the
+key-replacement one is enabled by our `PPQ_DATA_DIR` choice, and closes when
+upstream's patch lands and this package bumps to it. `instructions.md` warns
+the user to expose the interface accordingly.
 
 ## Actions (StartOS UI)
 
-- **Configure PPQ API Key** (`configure-api-key`) — sets the PPQ.AI API key
-  (masked, never echoed back) and the Verbose Logging toggle. Available at any
-  service status. Also the target of the critical first-run task.
+- **Configure PPQ API Key** (`configure-api-key`) — visible and enabled at any
+  service status. Inputs: the PPQ.AI API key (masked, validated against
+  upstream's `^sk-[A-Za-z0-9]{16,64}$` shape; left blank it keeps the key
+  already saved and is never echoed back into the form) and the Verbose Logging
+  toggle. No result output. Also the target of the first-run task.
 
 ## Backups and Restore
 
@@ -108,16 +148,21 @@ None.
 1. This service is a client-side encryption proxy, not a self-hosted model
    server: inference runs remotely in PPQ.AI's attested TEE enclaves, and a
    funded [PPQ.AI](https://ppq.ai) API key is required (pay-per-query).
-2. The upstream OpenClaw-plugin mode is not packaged; only the standalone
+2. Saving a key on the Status Page restarts the daemon a few seconds later.
+   The proxy applies the key immediately; the restart is StartOS reacting to
+   the same file write, and is what makes the **Configure PPQ API Key** action
+   work at all (upstream reads `config.json` only at startup).
+3. The upstream OpenClaw-plugin mode is not packaged; only the standalone
    proxy runs on StartOS.
-3. The bind address and port are fixed (`0.0.0.0:8787` inside the container);
-   upstream's `HOST`/`PORT`/`PPQ_API_BASE` variables are not user-configurable.
+4. The bind address and port are fixed inside the container; upstream's
+   `HOST`/`PORT`/`PPQ_API_BASE` variables are not user-configurable.
 
 ## What Is Unchanged from Upstream
 
 - All API endpoints, request/response formats, and streaming behavior
 - The encryption and attestation flow (EHBP transport via the `tinfoil` client)
 - Model catalog and per-request `Authorization: Bearer` key override
+- The status page rendered at `/`, its API-key form included
 
 ## Contributing
 
@@ -131,12 +176,15 @@ See [AGENTS.md](AGENTS.md).
 package_id: ppq-private-mode
 architectures: [x86_64, aarch64]
 volumes:
-  main: /data
+  main: /data # subpath `proxy/` only; `store.json` stays host-side
 ports:
-  api: 8787
+  main: 8787 # one host serving both interfaces
+interfaces:
+  - ui
+  - api
 dependencies: none
 startos_managed_env_vars:
-  - PPQ_API_KEY
+  - PPQ_DATA_DIR
   - HOST
   - PORT
   - DEBUG

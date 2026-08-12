@@ -1,9 +1,12 @@
 export const short = {
   en_US: 'End-to-end encrypted proxy for PPQ.AI private (TEE) AI models',
-  es_ES: 'Proxy cifrado de extremo a extremo para los modelos de IA privados (TEE) de PPQ.AI',
-  de_DE: 'Ende-zu-Ende-verschlüsselter Proxy für private (TEE) KI-Modelle von PPQ.AI',
+  es_ES:
+    'Proxy cifrado de extremo a extremo para los modelos de IA privados (TEE) de PPQ.AI',
+  de_DE:
+    'Ende-zu-Ende-verschlüsselter Proxy für private (TEE) KI-Modelle von PPQ.AI',
   pl_PL: 'Szyfrowany end-to-end proxy dla prywatnych modeli AI (TEE) PPQ.AI',
-  fr_FR: 'Proxy chiffré de bout en bout pour les modèles IA privés (TEE) de PPQ.AI',
+  fr_FR:
+    'Proxy chiffré de bout en bout pour les modèles IA privés (TEE) de PPQ.AI',
 }
 
 export const long = {
