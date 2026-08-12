@@ -107,6 +107,16 @@ Two interfaces on one HTTP host, port 8787, both served by the proxy:
 
 Availability on LAN/Tor is decided by the user from the interface panel.
 
+**No endpoint is authenticated.** Upstream ships no auth on any route, so
+whoever can reach the port can spend the user's PPQ.AI balance via
+`/v1/chat/completions`, and — because this package sets `PPQ_DATA_DIR` — can
+also replace the stored key via `POST /setup/api-key`
+([upstream #23](https://github.com/PayPerQ/ppq-private-mode-proxy/issues/23)).
+The billing exposure predates that endpoint and is inherent to the proxy; the
+key-replacement one is enabled by our `PPQ_DATA_DIR` choice, and closes when
+upstream's patch lands and this package bumps to it. `instructions.md` warns
+the user to expose the interface accordingly.
+
 ## Actions (StartOS UI)
 
 - **Configure PPQ API Key** (`configure-api-key`) — visible and enabled at any

@@ -74,5 +74,12 @@ you already saved.
 
 ## Limitations
 
+**The proxy has no login of its own, so only expose it to people you trust.**
+Anyone who can reach the address can send requests that are billed to your
+PPQ.AI key, and can replace the stored key from the Status Page. On a LAN-only
+address that means everyone on your network; if you enable a Tor or public
+address, it means anyone with the address. Keeping it on the LAN, or on Tor with
+the address kept private, is the safe default.
+
 Backups of this service include your saved API key, and restoring a backup
 restores it — keep that in mind when handling backup drives.
