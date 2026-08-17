@@ -6,14 +6,13 @@ Develop it inside a StartOS packaging workspace created by `start-cli s9pk init-
 which provides the packaging guide and agent context one level up. If you're reading this in a
 bare clone with no workspace, the full guide is at <https://docs.start9.com/packaging>.
 
-**Start every task at the recipe index** — `../start-technologies/projects/start-sdk/docs/src/recipes.md`
-(or <https://docs.start9.com/packaging/recipes.html>). It maps an intent ("prompt the user to create
-admin credentials", "expose a web UI") to the constructs, the reference pages, and a named production
-package to copy. Find the recipe before you read this package's neighbours: a package you reach by
-grepping may be non-conformant, and the recipe outranks it.
+Work this package's `TODO.md` from top to bottom. Keep `README.md` (technical reference for an AI support or administering agent) and `instructions.md` (end-user docs) in sync with your changes.
 
-Work this package's `TODO.md` from top to bottom. Keep `README.md` (architecture, for developers and LLMs) and `instructions.md` (end-user docs) in sync with your changes.
+## This repo
 
-## Inspecting a running install
-
-To run a command inside a service's container (read its generated config, grep app logs), use `start-cli package attach <id> -n <subcontainer-name> -- <cmd>`. Select the subcontainer by **name** with `-n` (the name passed to `SubContainer.of` in `main.ts`, e.g. `-n web`) or by image with `-i`. Note: `-s/--subcontainer` matches the internal **Guid**, not the name, so passing a name to `-s` fails with "no matching subcontainers". A service with more than one subcontainer requires a selector; with none given, `attach` falls back to an interactive picker that panics in a non-TTY shell — that's the missing selector, not a TTY requirement.
+- **`config.json`'s shape must stay exactly upstream's.** The proxy rewrites the whole file when a key is saved on the Status Page, so anything the package adds there is destroyed. Package-owned settings go in `store.json` at the volume root — **outside** the `proxy/` subpath that is mounted — where the container cannot see or clobber them.
+- **Don't set `PPQ_API_KEY`.** Leaving it unset makes the proxy's own key store the single owner, so the action and the Status Page write the same key rather than competing.
+- **The task is `important`, not `critical`, on purpose.** A `critical` task suspends the ordinary controls, which would stop the user starting the service — and the Status Page is the other place a key can be saved. Blocking startup would block half the ways to complete the task.
+- **The key pattern is validated in the action** because upstream only validates on the Status Page — a malformed key written straight to `config.json` surfaces later as a 401 on the first request.
+- **A blank key field preserves the existing key**, so the action doubles as the way to toggle logging. Don't "fix" it to clear on empty.
+- **Default branch is `main`, not `master`.** Its CI workflows reference `main`; leave them.
