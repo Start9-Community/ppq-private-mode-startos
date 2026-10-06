@@ -3,7 +3,7 @@ import { sdk } from '../sdk'
 
 // Package-owned settings, kept outside the mounted PPQ_DATA_DIR subtree so the
 // proxy neither sees them nor overwrites them.
-const shape = z.object({
+const shape = z.looseObject({
   debug: z.boolean().catch(false),
 })
 

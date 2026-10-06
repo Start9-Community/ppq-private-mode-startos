@@ -122,6 +122,7 @@ Sets the API key and the verbose-logging switch.
 - **Cost:** the service restarts, since the proxy reads its config at start.
 - **Repeat safety:** idempotent. **Leaving the key blank keeps the existing one** rather than clearing it, so the action can be used to toggle logging without re-entering the key.
 - **The key is never echoed back into the form.** The logging toggle is pre-filled; the key is not.
+- **Verbose logging** adds a log line naming the model of each chat request, and logs errors that cut off a streamed reply. Prompt and reply contents are never logged.
 - **The key's shape is checked before it is written.** Upstream's status page rejects a malformed key outright, but a bad key written straight into the config file would only surface later as a failed request — so the same check is applied here.
 
 **Requests are billed to whichever key is set.**

@@ -18,17 +18,23 @@ Freshly scaffolded? Work the
 guide page, not a file in this repo — read it, don't copy it in.
 
 Keep `README.md` (technical reference for an AI support or administering agent) and
-`instructions.md` (end-user docs) in sync with your changes.
+`instructions.md` (end-user docs) in sync with your changes. This file restates neither:
+whoever changes the package has both, so it carries only what they don't — repo mechanics,
+a change that looks right and is not, where the next thing gets added, a naming trap, a
+build or test invocation particular to this repo.
 
-**Bugs and feature requests are GitHub issues on this repo** — file them as you find them.
+**Fix a defect you spot rather than reporting it** — you have the package open and the
+context to be sure. File **a GitHub issue on this repo** only when the call isn't yours to
+make: you can't pin the cause down, two defensible fixes exist, or it's too large to ride on
+the work in hand. An open issue is a report, not a queue — implement one when you're asked
+to or when it's labelled `Approved`, then close it with `Closes #<n>`.
+
 Don't record work in the repo instead: no `TODO.md`, no `NOTES.md`, no `PLAN.md`. What you
 verified, tried, and decided belongs in the commit message and the PR body.
 
 ## This repo
 
-- **`config.json`'s shape must stay exactly upstream's.** The proxy rewrites the whole file when a key is saved on the Status Page, so anything the package adds there is destroyed. Package-owned settings go in `store.json` at the volume root — **outside** the `proxy/` subpath that is mounted — where the container cannot see or clobber them.
-- **Don't set `PPQ_API_KEY`.** Leaving it unset makes the proxy's own key store the single owner, so the action and the Status Page write the same key rather than competing.
-- **The task is `important`, not `critical`, on purpose.** A `critical` task suspends the ordinary controls, which would stop the user starting the service — and the Status Page is the other place a key can be saved. Blocking startup would block half the ways to complete the task.
-- **The key pattern is validated in the action** because upstream only validates on the Status Page — a malformed key written straight to `config.json` surfaces later as a 401 on the first request.
-- **A blank key field preserves the existing key**, so the action doubles as the way to toggle logging. Don't "fix" it to clear on empty.
-- **Default branch is `main`, not `master`.** Its CI workflows reference `main`; leave them.
+- **Put package-owned settings in `store.json`, never in `config.json`** — the proxy rewrites `config.json` whole when a key is saved on the Status Page.
+- **Don't set `PPQ_API_KEY`** — the proxy's own key store must stay the key's only owner, so the action and the Status Page write the same key.
+- **A blank key field keeps the saved key; don't "fix" it to clear on empty** — it is how the action toggles logging without re-entering the key.
+- **Default branch is `main`, not `master`.** Keep `main` in every workflow when resyncing them from the template.

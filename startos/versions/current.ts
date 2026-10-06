@@ -2,13 +2,15 @@ import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
   // Tracks upstream ppq-private-mode-proxy (package.json version).
-  version: '0.4.1:0',
+  version: '0.4.1:1',
   releaseNotes: {
-    en_US: 'Initial release for StartOS',
-    es_ES: 'Lanzamiento inicial para StartOS',
-    de_DE: 'Erstveröffentlichung für StartOS',
-    pl_PL: 'Pierwsze wydanie dla StartOS',
-    fr_FR: 'Version initiale pour StartOS',
+    en_US: '- The Verbose Logging setting explains what it logs.',
+    es_ES: '- El ajuste Registro detallado explica qué registra.',
+    de_DE:
+      '- Die Einstellung Ausführliche Protokollierung erklärt, was sie protokolliert.',
+    pl_PL: '- Ustawienie Szczegółowe logowanie wyjaśnia, co jest rejestrowane.',
+    fr_FR:
+      "- Le réglage Journalisation détaillée explique ce qu'il journalise.",
   },
   migrations: {
     up: async ({ effects }) => {},
