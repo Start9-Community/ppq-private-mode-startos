@@ -16,7 +16,7 @@ const dict = {
   'Your API key from ppq.ai (Settings → API Keys). Leave blank to keep the key already saved, or to set one later from the Status Page.': 9,
   'A PPQ.AI key starts with "sk-".': 10,
   'Verbose Logging': 11,
-  'Adds a log line naming the model for each chat request, and logs errors that cut off a streamed reply. Prompts and replies are never logged.': 12,
+  'Logs the model for accepted chat requests and OpenAI stream errors. Error messages may include sensitive content, even when Verbose Logging is off.': 12,
   'Configure PPQ API Key': 13,
   'Set the PPQ.AI API key the proxy uses to authenticate. Requests are billed to this key.': 14,
   // init/taskConfigureApiKey.ts

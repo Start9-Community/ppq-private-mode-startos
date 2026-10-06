@@ -28,7 +28,7 @@ const inputSpec = InputSpec.of({
   debug: Value.toggle({
     name: i18n('Verbose Logging'),
     description: i18n(
-      'Adds a log line naming the model for each chat request, and logs errors that cut off a streamed reply. Prompts and replies are never logged.',
+      'Logs the model for accepted chat requests and OpenAI stream errors. Error messages may include sensitive content, even when Verbose Logging is off.',
     ),
     default: false,
   }),
