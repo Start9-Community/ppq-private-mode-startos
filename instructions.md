@@ -70,7 +70,9 @@ PPQ.AI key per request, pass it as an `Authorization: Bearer` header.
 Either surface works, and both write the same place: **Replace key** on the
 Status Page, or the **Configure PPQ API Key** action. The action is also where
 you turn Verbose Logging on and off; leaving its key field blank keeps the key
-you already saved.
+you already saved. Verbose Logging adds model information for accepted chat
+requests and logs OpenAI stream errors. Error messages may include sensitive
+content, even when Verbose Logging is off; review logs before sharing them.
 
 ## Limitations
 

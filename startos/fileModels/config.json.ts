@@ -5,7 +5,7 @@ import { sdk } from '../sdk'
 // loads the key from here at startup and rewrites the whole file when one is
 // saved from the status page, so this shape must stay exactly upstream's and
 // nothing else may live in it — see fileModels/store.json.ts.
-const shape = z.object({
+const shape = z.looseObject({
   apiKey: z.string().optional().catch(undefined),
 })
 

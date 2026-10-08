@@ -28,7 +28,7 @@ const inputSpec = InputSpec.of({
   debug: Value.toggle({
     name: i18n('Verbose Logging'),
     description: i18n(
-      'Log every request the proxy handles. Useful for troubleshooting.',
+      'Logs the model for accepted chat requests and OpenAI stream errors. Error messages may include sensitive content, even when Verbose Logging is off.',
     ),
     default: false,
   }),
