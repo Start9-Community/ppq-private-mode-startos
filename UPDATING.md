@@ -24,8 +24,3 @@ The packaged version lives in `startos/versions/current.ts` (`version:
    variables, changed endpoints, a changed bind/attestation order (the health
    check depends on the port being bound only after attestation), or a model
    catalog change that the docs name.
-3. Update `version` in `startos/versions/current.ts` to the new upstream
-   `package.json` version with revision `:0` (bump only the revision for
-   packaging-only changes), and write release notes in every locale.
-4. Rebuild and test: `make x86` (or `make arm`), install, verify attestation
-   completes, the Status Page loads, and a `/v1/models` request succeeds.
