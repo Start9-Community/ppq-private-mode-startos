@@ -1,0 +1,129 @@
+name: Upstream Bump
+
+# Opens a PR that moves the ppq-private-mode-proxy submodule to upstream's
+# newest release tag, following UPDATING.md: submodule → tag, version
+# '<upstream>:0', release notes in every locale. The PR is a proposal only;
+# review the upstream diff (UPDATING.md step 2) and build before merging.
+#
+# PRs opened with GITHUB_TOKEN do not trigger other workflows, so Build does
+# not run on them automatically: run it from the Actions tab (it has
+# workflow_dispatch) or close and reopen the PR.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Find upstream's newest release
+        id: up
+        run: |
+          set -euo pipefail
+          git -C ppq-private-mode-proxy fetch --tags --force origin
+          # Release tags only (vMAJOR.MINOR.PATCH); prereleases are skipped.
+          latest=$(git -C ppq-private-mode-proxy tag --list 'v*' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          current=$(git -C ppq-private-mode-proxy describe --tags --exact-match HEAD 2>/dev/null || echo none)
+          packaged=$(sed -nE "s/^[[:space:]]*version: '([0-9]+\.[0-9]+\.[0-9]+):[0-9]+',.*/\1/p" startos/versions/current.ts)
+          echo "latest=$latest current=$current packaged=$packaged"
+          newest=$(printf '%s\n%s\n' "v$packaged" "$latest" | sort -V | tail -1)
+          if [ -z "$latest" ] || [ "$newest" = "v$packaged" ]; then
+            echo "Up to date."
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "bump=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$latest" >> "$GITHUB_OUTPUT"
+          echo "version=${latest#v}" >> "$GITHUB_OUTPUT"
+          echo "from=$current" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if a bump PR is already open
+        if: steps.up.outputs.bump == 'true'
+        id: open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="upstream-bump/${{ steps.up.outputs.tag }}"
+          n=$(gh pr list --head "$branch" --state open --json number --jq 'length')
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "exists=$([ "$n" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Apply the bump
+        if: steps.up.outputs.bump == 'true' && steps.open.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.up.outputs.tag }}
+          VERSION: ${{ steps.up.outputs.version }}
+          FROM: ${{ steps.up.outputs.from }}
+        run: |
+          set -euo pipefail
+          git -C ppq-private-mode-proxy checkout --quiet "$TAG"
+          node - <<'EOF'
+          const fs = require('fs');
+          const file = 'startos/versions/current.ts';
+          const { VERSION: v, TAG: tag, FROM: from } = process.env;
+          const changes =
+            from && from !== 'none'
+              ? `https://github.com/PayPerQ/ppq-privacy-verifier/compare/${from}...${tag}`
+              : `https://github.com/PayPerQ/ppq-privacy-verifier/releases/tag/${tag}`;
+          const notes = {
+            en_US: `Updates the PPQ Private Mode proxy to ${v}. Changes: ${changes}`,
+            es_ES: `Actualiza el proxy de PPQ Private Mode a ${v}. Cambios: ${changes}`,
+            de_DE: `Aktualisiert den PPQ-Private-Mode-Proxy auf ${v}. Änderungen: ${changes}`,
+            pl_PL: `Aktualizuje proxy PPQ Private Mode do wersji ${v}. Zmiany: ${changes}`,
+            fr_FR: `Met à jour le proxy PPQ Private Mode vers ${v}. Modifications : ${changes}`,
+          };
+          let src = fs.readFileSync(file, 'utf8');
+          const versionRe = /version: '[^']*',/;
+          const notesRe = /releaseNotes: \{[\s\S]*?\n  \},/;
+          if (!versionRe.test(src) || !notesRe.test(src)) {
+            throw new Error(`${file} no longer has the expected version/releaseNotes shape`);
+          }
+          const body = Object.entries(notes)
+            .map(([k, t]) => `    ${k}: ${JSON.stringify(t)},`)
+            .join('\n');
+          src = src
+            .replace(versionRe, `version: '${v}:0',`)
+            .replace(notesRe, `releaseNotes: {\n${body}\n  },`);
+          fs.writeFileSync(file, src);
+          EOF
+          git diff --stat
+
+      - name: Open the PR
+        if: steps.up.outputs.bump == 'true' && steps.open.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.up.outputs.tag }}
+          FROM: ${{ steps.up.outputs.from }}
+          BRANCH: ${{ steps.open.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "$BRANCH"
+          git add ppq-private-mode-proxy startos/versions/current.ts
+          git commit -m "Bump upstream ppq-private-mode-proxy to $TAG"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "Bump upstream ppq-private-mode-proxy to $TAG" \
+            --body "Automated by .github/workflows/upstreamBump.yml.
+
+          - Submodule: \`$FROM\` → \`$TAG\` ([diff](https://github.com/PayPerQ/ppq-privacy-verifier/compare/$FROM...$TAG))
+          - \`startos/versions/current.ts\`: version \`${TAG#v}:0\`, generic release notes in every locale (edit them if the change deserves more).
+
+          Before merging (UPDATING.md): read the upstream diff for new environment variables, endpoint or bind/attestation-order changes, then run **Build** from the Actions tab (it does not start on bot-opened PRs), install, and check attestation, the Status Page and \`/v1/models\`."
