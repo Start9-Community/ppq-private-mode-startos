@@ -48,7 +48,7 @@ Point any OpenAI-compatible client at the API address:
 
 ```
 POST <api-address>/v1/chat/completions
-{"model": "private/glm-5-2", "messages": [{"role": "user", "content": "Hello"}]}
+{"model": "private/glm-5-3", "messages": [{"role": "user", "content": "Hello"}]}
 ```
 
 Anthropic-SDK clients (including Claude Code) can use the native endpoint at
@@ -56,7 +56,7 @@ Anthropic-SDK clients (including Claude Code) can use the native endpoint at
 
 ```
 export ANTHROPIC_BASE_URL="<api-address>"
-export ANTHROPIC_MODEL="private/glm-5-2"
+export ANTHROPIC_MODEL="private/glm-5-3"
 ```
 
 `GET <api-address>/v1/models` lists the available private models, and the Status
